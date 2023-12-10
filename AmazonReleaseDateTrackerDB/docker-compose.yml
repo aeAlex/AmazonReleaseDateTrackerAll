@@ -1,0 +1,21 @@
+version: '3'
+services:
+### MySQL Container
+  ardt_mysql:
+    container_name: ardt_mysql
+    build:
+      context: .
+      args:
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    networks:
+      - ardt_network
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  ardt_network:
+    external: true

@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <!-- jQuery -->
+    <script src="./src/extern/jquery-3.7.0.min.js"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <!-- bootstrap css -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <h3>Amazon Book Realeasedate-Tracker</h3>
+    <button
+      id="btnWatchBook"
+      type="button"
+      class="btn btn-primary btn-lg btn-block"
+    >
+      Watch this Amazon book
+    </button>
+    <button
+      id="btnShowBooks"
+      type="button"
+      class="btn btn-secondary btn-lg btn-block"
+    >
+      Show my tracked books
+    </button>
+    <div class="separator"></div>
+    <div
+      id="popupMessager"
+      style="display: none"
+      class="alert alert-success"
+      role="alert"
+    >
+      A simple success alert—check it out!
+    </div>
+
+    <script src="./src/scraper.js"></script>
+    <script src="./src/index.js"></script>
+  </body>
+</html>

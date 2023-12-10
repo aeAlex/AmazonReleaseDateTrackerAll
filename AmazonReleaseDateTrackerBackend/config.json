@@ -1,0 +1,12 @@
+{
+    "mysql": {
+        "username" : "base",
+        "password" : "pass",
+        "host": "ardt_mysql",
+        "dbName": "AmazonReleaseDateTracker",
+        "port": 3306
+    },
+    "urls": {
+        "login" : "http://localhost/AmazonReleaseDateTracker"
+    }
+}

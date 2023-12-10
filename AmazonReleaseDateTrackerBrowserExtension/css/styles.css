@@ -1,0 +1,9 @@
+html, body {
+    min-width: 550px;
+    min-height: 100%;
+    padding: 10px;
+}
+
+.separator {
+    height:10px;
+}

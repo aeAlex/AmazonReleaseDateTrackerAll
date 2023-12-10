@@ -1,0 +1,33 @@
+{
+  "name": "Amazon Book Releasedate",
+    "version": "1.0.0",
+    "description": "Releasdate of Marked Books",
+    "manifest_version": 3,
+    "author": "Alex",
+    "action":{
+        "default_popup": "index.html",
+        "default_title": "Amazon Book Releasedate"
+    },
+    "icons": {
+      "16": "./img/ART-Icon.svg",
+      "32": "./img/ART-Icon.svg",
+      "48": "./img/ART-Icon.svg"
+    },
+    "content_scripts": [
+    {
+      "matches": ["file://*/*"],
+      "run_at": "document_end", 
+      "js": ["./src/extern/jquery-3.7.0.min.js", "./src/contentScript.js"],
+      "all_frames": false
+    }   
+   ],
+   "permissions": [
+      "tabs"
+    ],
+    "host_permissions": [
+      "https://*/",
+      "http://*/",
+      "*://*.amazon.com/*"
+    ]
+  
+}

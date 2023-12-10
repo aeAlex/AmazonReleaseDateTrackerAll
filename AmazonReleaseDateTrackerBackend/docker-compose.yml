@@ -1,0 +1,23 @@
+version: "3"
+services:
+  'ardt_backend':
+    container_name: ardt_backend
+    environment: 
+      - NODE_ENV=development
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./:/usr/app
+    expose: 
+      - "8001"
+    ports:
+      - "8001:8001"
+    networks:
+      - "ardt_network"
+    command: npm run dev
+    restart: "always"
+
+networks:
+  ardt_network:
+    external: true

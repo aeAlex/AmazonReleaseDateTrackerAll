@@ -17,7 +17,7 @@ import {
   trackBook,
   requestBooks,
   untrackBook,
-} from "./dbManager.mjs";
+} from "./dbManager2.mjs";
 
 const app = express()
 const port = 8001
@@ -25,12 +25,43 @@ const port = 8001
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+app.use(cors()); // Enable CORS for all routes
+
+// Or configure it with specific options
+// app.use(cors({
+//   origin: 'http://ardt_frontend:8002' // Replace with your React app's origin
+// }));
+
 app.use(cookieParser());
 
 import { readFile } from "fs/promises";
 const config = JSON.parse(
   await readFile(new URL("./config.json", import.meta.url))
 ); 
+
+// to get the form data
+// Middleware to parse URL-encoded data in the request body
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json());
+
+// Custom middleware that gets called before every call
+app.use((req, res, next) => {
+  console.log("Middleware: Request made to: " + req.url);
+  const authToken = req.cookies["AmazonBookReleasdateTracker_AuthToken"];
+  
+  getUserByToken(
+    authToken,
+    (id_user) => {
+      req.id_user = id_user;
+      next(); // Proceed to the next middleware or route handler
+    },
+    () => {
+      console.log("Tried entry without valid token!");
+      next(); // Proceed even if token validation fails (for public routes)
+    }
+  );
+});
 
 function getPwHash(password) {
   const sha256 = crypto.createHash("sha256");
@@ -40,29 +71,6 @@ function getPwHash(password) {
 function generateAuthToken() {
   return crypto.randomBytes(30).toString("hex");
 }
-
-// to get the form data
-// Middleware to parse URL-encoded data in the request body
-app.use(express.urlencoded({ extended: true }));
-
-// Custom middleware that gets called bevore every call
-app.use((req, res, next) => {
-  console.log("Test2")
-  const authToken = req.cookies["AmazonBookReleasdateTracker_AuthToken"];
-  console.log(authToken);
-  getUserByToken(
-    authToken,
-    (id_user) => {
-      req.id_user = id_user;
-      next();
-    },
-    () => {
-      console.log("Tried entry without valid token!");
-      next();
-    }
-  );
-  next();
-});
 
 const requireAuth = (req, res, next) => {
   if (req.id_user) {
@@ -86,69 +94,67 @@ app.get('/AmazonReleaseDateTracker/api', (req, res) => {
 });
 
 
-app.post("/AmazonReleaseDateTracker/api/register", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const passwordRP = req.body.passwordRP;
+app.post("/AmazonReleaseDateTracker/api/register", async (req, res) => {
+  let email, password, passwordRP;
+  try {
+    console.log(req.body);
+    email = req.body.email;
+    password = req.body.password;
+    passwordRP = req.body.passwordRP;
 
-  if (res.statusCode != 200 || password != passwordRP) {
-    res.sendFile(path.join(__dirname, "./Website/html/failure.html"));
-  } else {
-    doesUserAlreadyExist(
-      email,
-      () => {
-        // Case: Already Exists
-        res.redirect(
-          url.format({
-            pathname: "/AmazonReleaseDateTracker/api/register",
-            query: {
-              userAlreadyExists: true,
-            },
-          })
-        );
-      },
-      () => {
-        // Case: does not Exist
-        var pwHash = getPwHash(password);
-        registerUser(email, pwHash, () => {
-          console.log("Registration is done login in ...");
-          login(res, email, password);
-        });
-      }
-    );
+    console.log("Registering user: " + email);
+
+    if (password !== passwordRP) {
+      return res.status(400).send("Passwords do not match");
+    } 
+
+    const userExists = await doesUserAlreadyExist(email);
+
+    if (userExists) {
+      return res.status(409).send("User already exists");
+    }
+
+    const pwHash = getPwHash(password);
+
+    await registerUser(email, pwHash);
+
+    return res.status(201).send("User registered successfully");
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(500).send("Internal Server Error");
   }
+
+  //console.log("Registration is done, logging in ...");
+  // Proceed to login after registration
+  //await login(res, email, password);
 });
 
 
-function login(res, email, password) {
-  console.log("Someone tried to login!");
-  verifyUser(
-    email,
-    getPwHash(password),
-    (id_user) => {
-      const authToken = generateAuthToken();
-      saveAuthToken(id_user, authToken);
-      // saving the authToken in a Cookie
-      res.cookie("AmazonBookReleasdateTracker_AuthToken", authToken);
-      console.log("Redirecting...");
-      // Send the response after setting the cookie
-      res.redirect("/AmazonReleaseDateTracker");
-      return;
-    },
-    () => {
+async function login(res, email, password) {
+  try {
+    console.log("Someone tried to login with: " + email + " " + password);
+
+    const id_user = await verifyUser(email, getPwHash(password));
+
+    if (!id_user) {
       console.log("Invalid Login");
-      // Send the response after setting the cookie
-      res.redirect(
-        url.format({
-          pathname: "/AmazonReleaseDateTracker/login",
-          query: {
-            loginerror: true,
-          },
-        })
-      );
-      return;
+      // Respond here and return immediately
+      return res.status(401).send("Invalid Login");
     }
-  );
+
+    const authToken = generateAuthToken();
+    await saveAuthToken(id_user, authToken);
+    
+    // Saving the authToken in a Cookie
+    res.cookie("AmazonBookReleasdateTracker_AuthToken", authToken);
+
+    // Send success response after setting the cookie
+    return res.status(200).send("Login successful");
+
+  } catch (error) {
+    console.error("Error during login:\n", error);
+    res.status(500).send("Internal Server Error");
+  }
 }
 
 app.post("/AmazonReleaseDateTracker/api/login", (req, res) => {

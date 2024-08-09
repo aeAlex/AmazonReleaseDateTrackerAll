@@ -1,0 +1,42 @@
+.RegisterComponent {
+    max-width: 300px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #80d7fa;
+  }
+  
+  .RegisterComponent h2 {
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .RegisterComponent div {
+    margin-bottom: 10px;
+  }
+  
+  .RegisterComponent label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .RegisterComponent input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .RegisterComponent button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .RegisterComponent button:hover {
+    background-color: #0056b3;
+  }

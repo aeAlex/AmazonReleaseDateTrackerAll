@@ -1,0 +1,13 @@
+version: '3'
+services:
+  ardt_frontend:
+    container_name: ardt_frontend
+    build: .
+    ports:
+      - "8002:8002"
+    networks:
+      - ardt_network
+
+networks:
+  ardt_network:
+    external: true

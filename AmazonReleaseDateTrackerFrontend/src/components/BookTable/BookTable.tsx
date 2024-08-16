@@ -58,14 +58,15 @@ const BookTable = () => {
                 console.error(err);
               }
             });
-            
+
           }}
         />
       );
     });
   }
 
-  return (
+  return (elements.length === 0) ? <div className="BookTable text-gray-700">No books to display</div> :
+  (
     <div className="BookTable">
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">

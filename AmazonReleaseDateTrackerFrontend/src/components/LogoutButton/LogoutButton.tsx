@@ -1,15 +1,26 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import './LogoutButton.css';
 import logoutImage from "../../assets/imgs/power-off-icon.svg"
 import Config from "../../config.json";
+import BookListManagerContext, {
+  BookListManagerProps,
+} from "../../services/bookListManager";
 
-interface LogoutButtonProps {}
+interface LogoutButtonProps {
+  onLoggedOut: () => void; // Callback to handle logout logic
+}
 
-const LogoutButton = ({}: LogoutButtonProps) => {
+const LogoutButton = ({onLoggedOut}: LogoutButtonProps) => {
+
+  const bookListManagerContext = useContext<BookListManagerProps | null>(
+    BookListManagerContext
+  );
 
   const logout = () => {
-    console.log("logoutClicked");
-    window.open(Config.server.url + "logout");
+    console.log("logout Clicked");
+    bookListManagerContext?.logout();
+    onLoggedOut();
+    //window.open(Config.server.url + "logout");
   };
 
   return (

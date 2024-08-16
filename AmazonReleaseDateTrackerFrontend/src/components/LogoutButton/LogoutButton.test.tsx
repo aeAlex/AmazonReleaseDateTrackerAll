@@ -5,7 +5,7 @@ import LogoutButton from './LogoutButton';
 
 describe('<LogoutButton />', () => {
   test('it should mount', () => {
-    render(<LogoutButton />);
+    render(<LogoutButton onLoggedOut={()=>console.log("done logging out")}/>);
     
     const logoutButton = screen.getByTestId('LogoutButton');
 

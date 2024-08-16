@@ -26,9 +26,9 @@ function App() {
           <AuthComponent onAuthenticated={() => setShowAuth(false)}/>
         ) : (
           <>
-            <LogoutButton />
+            <LogoutButton onLoggedOut={() => setShowAuth(true)}/>
             <img src={logo} className="App-logo" alt="logo" />
-              <BookTable />
+            <BookTable />
           </>
         )}
       </div>

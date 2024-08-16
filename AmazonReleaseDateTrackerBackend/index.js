@@ -25,12 +25,21 @@ const port = 8001
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-app.use(cors()); // Enable CORS for all routes
+const authTokenCookieName = "AmazonBookReleasdateTracker_AuthToken";
 
-// Or configure it with specific options
-// app.use(cors({
-//   origin: 'http://ardt_frontend:8002' // Replace with your React app's origin
-// }));
+//app.use(cors()); // Enable CORS for all routes
+// problem when credentials are set to true
+
+const allowedOrigin = [
+  'http://localhost:3000', // when testing with yarn start
+  'http://ardt_frontend:8002',
+  'http://localhost:8002' // wehen testing with docker-compose
+]; // Replace with your frontend's URL
+
+app.use(cors({
+  origin: allowedOrigin,  // Only allow requests from this origin
+  credentials: true,      // Allow credentials (cookies, HTTP authentication)
+}));
 
 app.use(cookieParser());
 
@@ -38,6 +47,14 @@ import { readFile } from "fs/promises";
 const config = JSON.parse(
   await readFile(new URL("./config.json", import.meta.url))
 ); 
+
+const unsafeInlineCSP = "script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
+// Middleware for specific route with less restrictive CSP
+const unsafeInlineCSPMiddleware = (req, res, next) => {
+  console.log("Adding less restrictive CSP");
+  res.setHeader("Content-Security-Policy", unsafeInlineCSP);
+  next();
+};
 
 // to get the form data
 // Middleware to parse URL-encoded data in the request body
@@ -48,8 +65,8 @@ app.use(express.json());
 // Custom middleware that gets called before every call
 app.use((req, res, next) => {
   console.log("Middleware: Request made to: " + req.url);
-  const authToken = req.cookies["AmazonBookReleasdateTracker_AuthToken"];
-  
+  const authToken = req.cookies[authTokenCookieName];
+  console.log("Auth Token: " + authToken);
   getUserByToken(
     authToken,
     (id_user) => {
@@ -146,7 +163,7 @@ async function login(res, email, password) {
     await saveAuthToken(id_user, authToken);
     
     // Saving the authToken in a Cookie
-    res.cookie("AmazonBookReleasdateTracker_AuthToken", authToken);
+    res.cookie(authTokenCookieName, authToken);
 
     // Send success response after setting the cookie
     return res.status(200).send("Login successful");
@@ -162,13 +179,11 @@ app.post("/AmazonReleaseDateTracker/api/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
   
-    console.log(email + " " + password);
     login(res, email, password);
   }
   catch(e) {
     console.log(e);
   }
-
 });
 
 app.get("/AmazonReleaseDateTracker/api/IsLoggedIn", (req, res) => {
@@ -179,7 +194,7 @@ app.get("/AmazonReleaseDateTracker/api/IsLoggedIn", (req, res) => {
   }
 });
 
-app.post("/AmazonReleaseDateTracker/api/trackBook", requireAuth, (req, res) => {
+app.post("/AmazonReleaseDateTracker/api/trackBook", unsafeInlineCSPMiddleware, requireAuth, (req, res) => {
   const bookTitle = req.body["bookTitle"];
   const releaseDateString = req.body["releaseDate"];
   const url = req.body["url"];
@@ -207,7 +222,8 @@ app.get("/AmazonReleaseDateTracker/api/booklist", requireAuth, (req, res) => {
 
 app.get("/AmazonReleaseDateTracker/api/logout", requireAuth, (req, res) => {
   res.clearCookie("AmazonBookReleasdateTracker_AuthToken");
-  res.redirect("/AmazonReleaseDateTracker/login");
+  //res.redirect("/AmazonReleaseDateTracker/login");
+  res.send();
 });
 
 

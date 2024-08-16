@@ -15,14 +15,14 @@
     },
     "content_scripts": [
     {
-      "matches": ["file://*/*"],
+      "matches": ["<all_urls>"],
       "run_at": "document_end", 
-      "js": ["./src/extern/jquery-3.7.0.min.js", "./src/contentScript.js"],
-      "all_frames": false
+      "js": ["./src/extern/jquery-3.7.0.min.js", "./src/contentScript.js",  "./src/index.js",  "src/index.js"]
     }   
    ],
    "permissions": [
-      "tabs"
+      "tabs",
+      "scripting"
     ],
     "host_permissions": [
       "https://*/",

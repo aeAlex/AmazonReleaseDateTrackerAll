@@ -19,18 +19,20 @@ const BookTable = () => {
   const startBooks: Book[] = [];
   const [state, setBookList] = useState({ bookList: startBooks });
 
+  const updateBookList = (newBookList: Book[]) => {
+    console.log("Books:", newBookList);
+    if (state.bookList != newBookList) {setBookList({ bookList: newBookList });}
+  };
+
   const makeRequestForBooks = () => {
     var bookListPromise = bookListManagerContext?.retrieveAllBooks();
 
-    bookListPromise?.then((books: Book[]) => {
-      console.log("Books", books);
-      if (state.bookList != books) {setBookList({ bookList: books });}
-    }).catch((err) => {
+    bookListPromise?.then(updateBookList).catch((err) => {
       if (err.message !== "Unauthorized") {
         console.error(err);
       }
     });
-  }
+  };
 
   useEffect(() => { // Function gets run ony once because [] dosn't change
     makeRequestForBooks();
@@ -45,16 +47,18 @@ const BookTable = () => {
           key={book.id}
           book={book}
           deleteHandler={(bookToDelete) => {
-            console.log("delete: ", bookToDelete);
-            var remainingBooks;
-            
-            remainingBooks = bookListManagerContext?.deleteBook(
+            console.log("delete: ", bookToDelete);          
+            var remainingBooksPromise = bookListManagerContext?.deleteBook(
               state.bookList,
               bookToDelete
             );
-            if (remainingBooks != null) {
-              setBookList({ bookList: remainingBooks });
-            }
+
+            remainingBooksPromise?.then(updateBookList).catch((err) => {
+              if (err.message !== "Unauthorized") {
+                console.error(err);
+              }
+            });
+            
           }}
         />
       );

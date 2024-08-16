@@ -4,9 +4,13 @@ import Config from "../config.json";
 
 export interface BookListManagerProps {
   retrieveAllBooks(): Promise<Book[]>;
-  deleteBook(bookList: Book[], bookToDelete: Book): Book[];
-  register(username: string, password: string, rp_password: string): Promise<boolean>;
+  deleteBook(bookList: Book[], bookToDelete: Book): Promise<Book[]>;
+  register(username: string, password: string, rp_password: string, 
+    on_created: () => void, 
+    on_problem: (status: number, msg: string) => void
+  ): Promise<boolean>;
   login(username: string, password: string): Promise<boolean>;
+  logout(): void;
 }
 
 class MockBookListManager implements BookListManagerProps {
@@ -36,18 +40,38 @@ class MockBookListManager implements BookListManagerProps {
     return new Promise<Book[]>((resolve) => resolve(bookList));
   }
 
-  deleteBook(bookList: Book[], bookToDelete: Book): Book[] {
-    console.log("I received Stuff");
-    return bookList.filter((book) => book.id !== bookToDelete.id);
+  deleteBook(bookList: Book[], bookToDelete: Book): Promise<Book[]> {
+    return new Promise<Book[]>((resolve) => bookList.filter((book) => book.id !== bookToDelete.id));
   }
 
-  register(username: string, password: string, rp_password: string): Promise<boolean> {
+  register(username: string, password: string, rp_password: string, on_created: () => void, on_problem: (status: number, msg: string) => void): Promise<boolean> {
     return Promise.resolve(true);
   }
 
   login(username: string, password: string): Promise<boolean> {
     return Promise.resolve(true);
   }
+
+  logout(): void {
+    console.log("logging out");
+  }
+}
+
+interface ApiBook {
+  ID_book: number;
+  Name: string;
+  Url: string;
+  ReleasedateString: string;
+  ID_user: number;
+}
+
+function mapApiBookToBook(apiBook: ApiBook): Book {
+  return new Book(
+    apiBook.ID_book,
+    apiBook.Name.trim(),             // Trimming the whitespace from the name
+    apiBook.Url.trim(),              // Trimming the whitespace from the URL
+    apiBook.ReleasedateString.trim() // Trimming the whitespace from the release date
+  );
 }
 
 class BookListManager implements BookListManagerProps {
@@ -60,7 +84,18 @@ class BookListManager implements BookListManagerProps {
 
   retrieveAllBooks(): Promise<Book[]> {
     const url = this.URL_PREFIX + "booklist";
-    return fetch(url)
+    console.log("fetching books from", url);
+    return fetch(url, {
+      method: "GET",
+      credentials: "include",  // Include cookies in the request
+      headers: {
+        "Content-Type": "application/json",
+        // Todo remove these headers, and handle no change status 304
+        "Cache-Control": "no-cache", // Prevent caching
+        "Pragma": "no-cache",        // HTTP 1.0 backward compatibility
+        "Expires": "0",              // Expire immediately
+      }
+    })
       .then((response) => {
         console.log(response);
         if (response.status === 401) {
@@ -71,18 +106,38 @@ class BookListManager implements BookListManagerProps {
           console.log("Error other than 401!");
           throw new Error(response.statusText);
         }
-        return response.json() as Promise<{ data: Book[] }>;
+        return response.json();
       })
       .then((data) => {
-        return data.data;
+        return data.books.map(mapApiBookToBook);
       });
   }
 
-  deleteBook(bookList: Book[], bookToDelete: Book): Book[] {
-    throw new Error("Method not implemented.");
+  async deleteBook(bookList: Book[], bookToDelete: Book): Promise<Book[]> {
+    const url = this.URL_PREFIX + "untrackBook";
+    
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",  // Include cookies in the request
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id_book: bookToDelete.id,
+      }),
+    });
+    console.log(response);
+    if (response.ok) {
+      // Introduce a short delay to allow the server to process the deletion
+      await new Promise(resolve => setTimeout(resolve, 200)); 
+      return this.retrieveAllBooks();
+    } else {
+      throw new Error(response.statusText);
+    }
+    
   }
 
-  async register(username: string, password: string, rp_password: string): Promise<boolean> {
+  async register(username: string, password: string, rp_password: string, on_created: () => void, on_problem: (status: number, msg: string) => void): Promise<boolean> {
     try {
       const url = this.URL_PREFIX + "register";
       const response = await fetch(url, {
@@ -96,12 +151,14 @@ class BookListManager implements BookListManagerProps {
           passwordRP: rp_password,  // Send repeated password field
         }),
       });
-  
-      if (response.ok) {
+      console.log(response);
+      if (response.status === 201) {
         // Registration was successful
+        on_created();
         return true;
       } else {
         // Handle different response statuses
+        on_problem(response.status, response.statusText);
         return false;
       }
     } catch (error) {
@@ -110,9 +167,45 @@ class BookListManager implements BookListManagerProps {
     }
   }
 
-  login(username: string, password: string): Promise<boolean> {
-    return Promise.resolve(true);
+  async login(username: string, password: string): Promise<boolean> {
+    try {
+      const url = this.URL_PREFIX + "login";
+      const response = await fetch(url, {
+        method: "POST",
+        credentials: "include",  // Include cookies in the request
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: username,
+          password: password,
+        }),
+      });
+      console.log(response);
+      if (response.status === 201) {
+        // Registration was successful
+        return true;
+      } else {
+        // Handle different response statuses
+        return false;
+      }
+    } catch (error) {
+      console.error("Failed to login:", error);
+      return false;
+    }
   }
+
+  logout(): void {
+    const url = this.URL_PREFIX + "logout";
+    console.log("fetching books from", url);
+    fetch(url, {
+      method: "GET",
+      credentials: "include",  // Include cookies in the request
+    }).then((response) => {
+      console.log(response);
+    });
+  }
+
 }
 
 const BookListManagerContext = React.createContext<BookListManagerProps | null>(

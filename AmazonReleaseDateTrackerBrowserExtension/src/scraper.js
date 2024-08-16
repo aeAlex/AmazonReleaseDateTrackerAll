@@ -12,7 +12,7 @@ function saveOnServer(bookTitle, releaseDate, url) {
   console.log("Saving on Server!");
   const data = { bookTitle: bookTitle, releaseDate: releaseDate, url: url };
 
-  const reqUrl = myBaseUrl + "AmazonReleaseDateTracker/trackBook";
+  const reqUrl = myBaseUrl + "AmazonReleaseDateTracker/api/trackBook";
 
   $.ajax({
     type: "POST",
@@ -53,7 +53,7 @@ function handleAmazonURL(url, onDone) {
 }
 
 function loginIfNecessary(fnLogin) {
-  const url = myBaseUrl + "AmazonReleaseDateTracker/IsLoggedIn";
+  const url = myBaseUrl + "AmazonReleaseDateTracker/api/IsLoggedIn";
   try {
     $.get(url, function (response) {
       console.log("response:", response);

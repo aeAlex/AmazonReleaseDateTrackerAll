@@ -1,5 +1,6 @@
 Login:
 ```
+sudo docker exec -it 79fa6bd1a869 sh
 mysql -u root -p 
 ```
 
@@ -25,4 +26,11 @@ MYSQL_USER=your_username
 MYSQL_PASSWORD=your_password
 MYSQL_ROOT_PASSWORD=your_root_password
 MYSQL_PORT=3306
+```
+
+### Useful stuff
+```
+show databases;
+use AmazonReleaseDateTracker;
+show tables;
 ```

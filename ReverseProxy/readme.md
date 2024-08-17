@@ -1,3 +1,6 @@
+## Before Building
+check that the url in /src/config.json is correkt
+
 
 ## How to make changes
 ```

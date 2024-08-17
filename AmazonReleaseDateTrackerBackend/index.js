@@ -33,8 +33,10 @@ const authTokenCookieName = "AmazonBookReleasdateTracker_AuthToken";
 const allowedOrigin = [
   'http://localhost:3000', // when testing with yarn start
   'http://ardt_frontend:8002',
-  'http://localhost:8002' // wehen testing with docker-compose
-]; // Replace with your frontend's URL
+  'http://localhost:8002', // wehen testing with docker-compose
+  'http://www.einsoftdev.com',
+  'https://www.einsoftdev.com',
+];
 
 app.use(cors({
   origin: allowedOrigin,  // Only allow requests from this origin

@@ -176,7 +176,7 @@ async function login(res, email, password) {
   }
 }
 
-app.post("/AmazonReleaseDateTracker/api/login", (req, res) => {
+app.post("/AmazonReleaseDateTracker/api/login", unsafeInlineCSPMiddleware, (req, res) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
@@ -188,7 +188,7 @@ app.post("/AmazonReleaseDateTracker/api/login", (req, res) => {
   }
 });
 
-app.get("/AmazonReleaseDateTracker/api/IsLoggedIn", (req, res) => {
+app.get("/AmazonReleaseDateTracker/api/IsLoggedIn", unsafeInlineCSPMiddleware, (req, res) => {
   if (req.id_user == null) {
     return res.send("FALSE");
   } else {

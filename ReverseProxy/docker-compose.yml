@@ -1,4 +1,3 @@
-version: "3"
 services:
   'ardt_reverse_proxy':
     container_name: ardt_reverse_proxy

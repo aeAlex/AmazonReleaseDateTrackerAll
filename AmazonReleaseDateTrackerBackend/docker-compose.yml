@@ -1,4 +1,3 @@
-version: "3"
 services:
   'ardt_backend':
     container_name: ardt_backend

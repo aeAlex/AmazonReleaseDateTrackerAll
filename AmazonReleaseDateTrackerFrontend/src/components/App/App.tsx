@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from "../../assets/imgs/Logo.svg";
 import "./App.css";
 import BookTable from "../BookTable/BookTable";
@@ -17,6 +17,10 @@ function App() {
   };
 
   const bookListManager = new BookListManager(handleUnauthorized);
+
+  useEffect(() => {
+    document.title = "Releasedate Tracker"
+  }, []);
 
   return (
     <BookListManagerContext.Provider value={bookListManager}>

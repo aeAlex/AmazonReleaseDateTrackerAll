@@ -8,6 +8,7 @@ services:
       dockerfile: ./dockerfile
     volumes:
       - ./:/usr/app
+      - ./certbot/www:/var/www/certbot
     expose: 
       - "80"
     ports:
